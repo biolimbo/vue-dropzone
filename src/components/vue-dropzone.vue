@@ -1,8 +1,10 @@
 <template>
-  <div :id="id" ref="dropzoneElement" :class="{ 'vue-dropzone dropzone': includeStyling }">
-    <div v-if="useCustomSlot" class="dz-message">
-      <slot>Drop files here to upload</slot>
-    </div>
+  <div
+    :id="id"
+    ref="dropzoneElement"
+    :class="{ 'vue-dropzone dropzone': includeStyling }"
+  >
+    <slot>Drop files here to upload</slot>
   </div>
 </template>
 
@@ -17,52 +19,52 @@ export default {
     id: {
       type: String,
       required: true,
-      default: "dropzone"
+      default: "dropzone",
     },
     options: {
       type: Object,
-      required: true
+      required: true,
     },
     includeStyling: {
       type: Boolean,
       default: true,
-      required: false
+      required: false,
     },
     awss3: {
       type: Object,
       required: false,
-      default: null
+      default: null,
     },
     destroyDropzone: {
       type: Boolean,
       default: true,
-      required: false
+      required: false,
     },
     duplicateCheck: {
       type: Boolean,
       default: false,
-      required: false
+      required: false,
     },
     useCustomSlot: {
       type: Boolean,
       default: false,
-      required: false
-    }
+      required: false,
+    },
   },
   data() {
     return {
       isS3: false,
       isS3OverridesServerPropagation: false,
-      wasQueueAutoProcess: true
+      wasQueueAutoProcess: true,
     };
   },
   computed: {
     dropzoneSettings() {
       let defaultValues = {
         thumbnailWidth: 200,
-        thumbnailHeight: 200
+        thumbnailHeight: 200,
       };
-      Object.keys(this.options).forEach(function(key) {
+      Object.keys(this.options).forEach(function (key) {
         defaultValues[key] = this.options[key];
       }, this);
       if (this.awss3 !== null) {
@@ -74,13 +76,13 @@ export default {
           this.wasQueueAutoProcess = this.options.autoProcessQueue; //eslint-disable-line
 
         if (this.isS3OverridesServerPropagation) {
-          defaultValues["url"] = files => {
+          defaultValues["url"] = (files) => {
             return files[0].s3Url;
           };
         }
       }
       return defaultValues;
-    }
+    },
   },
   mounted() {
     if (this.$isServer && this.hasBeenMounted) {
@@ -94,11 +96,11 @@ export default {
     );
     let vm = this;
 
-    this.dropzone.on("thumbnail", function(file, dataUrl) {
+    this.dropzone.on("thumbnail", function (file, dataUrl) {
       vm.$emit("vdropzone-thumbnail", file, dataUrl);
     });
 
-    this.dropzone.on("addedfile", function(file) {
+    this.dropzone.on("addedfile", function (file) {
       var isDuplicate = false;
       if (vm.duplicateCheck) {
         if (this.files.length) {
@@ -128,17 +130,17 @@ export default {
       }
     });
 
-    this.dropzone.on("addedfiles", function(files) {
+    this.dropzone.on("addedfiles", function (files) {
       vm.$emit("vdropzone-files-added", files);
     });
 
-    this.dropzone.on("removedfile", function(file) {
+    this.dropzone.on("removedfile", function (file) {
       vm.$emit("vdropzone-removed-file", file);
       if (file.manuallyAdded && vm.dropzone.options.maxFiles !== null)
         vm.dropzone.options.maxFiles++;
     });
 
-    this.dropzone.on("success", function(file, response) {
+    this.dropzone.on("success", function (file, response) {
       vm.$emit("vdropzone-success", file, response);
       if (vm.isS3) {
         if (vm.isS3OverridesServerPropagation) {
@@ -153,24 +155,24 @@ export default {
       }
     });
 
-    this.dropzone.on("successmultiple", function(file, response) {
+    this.dropzone.on("successmultiple", function (file, response) {
       vm.$emit("vdropzone-success-multiple", file, response);
     });
 
-    this.dropzone.on("error", function(file, message, xhr) {
+    this.dropzone.on("error", function (file, message, xhr) {
       vm.$emit("vdropzone-error", file, message, xhr);
       if (this.isS3) vm.$emit("vdropzone-s3-upload-error");
     });
 
-    this.dropzone.on("errormultiple", function(files, message, xhr) {
+    this.dropzone.on("errormultiple", function (files, message, xhr) {
       vm.$emit("vdropzone-error-multiple", files, message, xhr);
     });
 
-    this.dropzone.on("sending", function(file, xhr, formData) {
+    this.dropzone.on("sending", function (file, xhr, formData) {
       if (vm.isS3) {
         if (vm.isS3OverridesServerPropagation) {
           let signature = file.s3Signature;
-          Object.keys(signature).forEach(function(key) {
+          Object.keys(signature).forEach(function (key) {
             formData.append(key, signature[key]);
           });
         } else {
@@ -180,47 +182,47 @@ export default {
       vm.$emit("vdropzone-sending", file, xhr, formData);
     });
 
-    this.dropzone.on("sendingmultiple", function(file, xhr, formData) {
+    this.dropzone.on("sendingmultiple", function (file, xhr, formData) {
       vm.$emit("vdropzone-sending-multiple", file, xhr, formData);
     });
 
-    this.dropzone.on("complete", function(file) {
+    this.dropzone.on("complete", function (file) {
       vm.$emit("vdropzone-complete", file);
     });
 
-    this.dropzone.on("completemultiple", function(files) {
+    this.dropzone.on("completemultiple", function (files) {
       vm.$emit("vdropzone-complete-multiple", files);
     });
 
-    this.dropzone.on("canceled", function(file) {
+    this.dropzone.on("canceled", function (file) {
       vm.$emit("vdropzone-canceled", file);
     });
 
-    this.dropzone.on("canceledmultiple", function(files) {
+    this.dropzone.on("canceledmultiple", function (files) {
       vm.$emit("vdropzone-canceled-multiple", files);
     });
 
-    this.dropzone.on("maxfilesreached", function(files) {
+    this.dropzone.on("maxfilesreached", function (files) {
       vm.$emit("vdropzone-max-files-reached", files);
     });
 
-    this.dropzone.on("maxfilesexceeded", function(file) {
+    this.dropzone.on("maxfilesexceeded", function (file) {
       vm.$emit("vdropzone-max-files-exceeded", file);
     });
 
-    this.dropzone.on("processing", function(file) {
+    this.dropzone.on("processing", function (file) {
       vm.$emit("vdropzone-processing", file);
     });
 
-    this.dropzone.on("processingmultiple", function(files) {
+    this.dropzone.on("processingmultiple", function (files) {
       vm.$emit("vdropzone-processing-multiple", files);
     });
 
-    this.dropzone.on("uploadprogress", function(file, progress, bytesSent) {
+    this.dropzone.on("uploadprogress", function (file, progress, bytesSent) {
       vm.$emit("vdropzone-upload-progress", file, progress, bytesSent);
     });
 
-    this.dropzone.on("totaluploadprogress", function(
+    this.dropzone.on("totaluploadprogress", function (
       totaluploadprogress,
       totalBytes,
       totalBytesSent
@@ -233,35 +235,35 @@ export default {
       );
     });
 
-    this.dropzone.on("reset", function() {
+    this.dropzone.on("reset", function () {
       vm.$emit("vdropzone-reset");
     });
 
-    this.dropzone.on("queuecomplete", function() {
+    this.dropzone.on("queuecomplete", function () {
       vm.$emit("vdropzone-queue-complete");
     });
 
-    this.dropzone.on("drop", function(event) {
+    this.dropzone.on("drop", function (event) {
       vm.$emit("vdropzone-drop", event);
     });
 
-    this.dropzone.on("dragstart", function(event) {
+    this.dropzone.on("dragstart", function (event) {
       vm.$emit("vdropzone-drag-start", event);
     });
 
-    this.dropzone.on("dragend", function(event) {
+    this.dropzone.on("dragend", function (event) {
       vm.$emit("vdropzone-drag-end", event);
     });
 
-    this.dropzone.on("dragenter", function(event) {
+    this.dropzone.on("dragenter", function (event) {
       vm.$emit("vdropzone-drag-enter", event);
     });
 
-    this.dropzone.on("dragover", function(event) {
+    this.dropzone.on("dragover", function (event) {
       vm.$emit("vdropzone-drag-over", event);
     });
 
-    this.dropzone.on("dragleave", function(event) {
+    this.dropzone.on("dragleave", function (event) {
       vm.$emit("vdropzone-drag-leave", event);
     });
 
@@ -271,7 +273,7 @@ export default {
     if (this.destroyDropzone) this.dropzone.destroy();
   },
   methods: {
-    manuallyAddFile: function(file, fileUrl) {
+    manuallyAddFile: function (file, fileUrl) {
       file.manuallyAdded = true;
       this.dropzone.emit("addedfile", file);
       let containsImageFileType = false;
@@ -307,86 +309,86 @@ export default {
       this.dropzone.files.push(file);
       this.$emit("vdropzone-file-added-manually", file);
     },
-    setOption: function(option, value) {
+    setOption: function (option, value) {
       this.dropzone.options[option] = value;
     },
-    removeAllFiles: function(bool) {
+    removeAllFiles: function (bool) {
       this.dropzone.removeAllFiles(bool);
     },
-    processQueue: function() {
+    processQueue: function () {
       let dropzoneEle = this.dropzone;
       if (this.isS3 && !this.wasQueueAutoProcess) {
-        this.getQueuedFiles().forEach(file => {
+        this.getQueuedFiles().forEach((file) => {
           this.getSignedAndUploadToS3(file);
         });
       } else {
         this.dropzone.processQueue();
       }
-      this.dropzone.on("success", function() {
+      this.dropzone.on("success", function () {
         dropzoneEle.options.autoProcessQueue = true;
       });
-      this.dropzone.on("queuecomplete", function() {
+      this.dropzone.on("queuecomplete", function () {
         dropzoneEle.options.autoProcessQueue = false;
       });
     },
-    init: function() {
+    init: function () {
       return this.dropzone.init();
     },
-    destroy: function() {
+    destroy: function () {
       return this.dropzone.destroy();
     },
-    updateTotalUploadProgress: function() {
+    updateTotalUploadProgress: function () {
       return this.dropzone.updateTotalUploadProgress();
     },
-    getFallbackForm: function() {
+    getFallbackForm: function () {
       return this.dropzone.getFallbackForm();
     },
-    getExistingFallback: function() {
+    getExistingFallback: function () {
       return this.dropzone.getExistingFallback();
     },
-    setupEventListeners: function() {
+    setupEventListeners: function () {
       return this.dropzone.setupEventListeners();
     },
-    removeEventListeners: function() {
+    removeEventListeners: function () {
       return this.dropzone.removeEventListeners();
     },
-    disable: function() {
+    disable: function () {
       return this.dropzone.disable();
     },
-    enable: function() {
+    enable: function () {
       return this.dropzone.enable();
     },
-    filesize: function(size) {
+    filesize: function (size) {
       return this.dropzone.filesize(size);
     },
-    accept: function(file, done) {
+    accept: function (file, done) {
       return this.dropzone.accept(file, done);
     },
-    addFile: function(file) {
+    addFile: function (file) {
       return this.dropzone.addFile(file);
     },
-    removeFile: function(file) {
+    removeFile: function (file) {
       this.dropzone.removeFile(file);
     },
-    getAcceptedFiles: function() {
+    getAcceptedFiles: function () {
       return this.dropzone.getAcceptedFiles();
     },
-    getRejectedFiles: function() {
+    getRejectedFiles: function () {
       return this.dropzone.getRejectedFiles();
     },
-    getFilesWithStatus: function() {
+    getFilesWithStatus: function () {
       return this.dropzone.getFilesWithStatus();
     },
-    getQueuedFiles: function() {
+    getQueuedFiles: function () {
       return this.dropzone.getQueuedFiles();
     },
-    getUploadingFiles: function() {
+    getUploadingFiles: function () {
       return this.dropzone.getUploadingFiles();
     },
-    getAddedFiles: function() {
+    getAddedFiles: function () {
       return this.dropzone.getAddedFiles();
     },
-    getActiveFiles: function() {
+    getActiveFiles: function () {
       return this.dropzone.getActiveFiles();
     },
     getSignedAndUploadToS3(file) {
@@ -396,7 +398,7 @@ export default {
         this.isS3OverridesServerPropagation
       );
       if (!this.isS3OverridesServerPropagation) {
-        promise.then(response => {
+        promise.then((response) => {
           if (response.success) {
             file.s3ObjectLocation = response.message;
             setTimeout(() => this.dropzone.processFile(file));
@@ -417,7 +419,7 @@ export default {
           setTimeout(() => this.dropzone.processFile(file));
         });
       }
-      promise.catch(error => {
+      promise.catch((error) => {
         alert(error);
       });
     },
@@ -425,8 +427,8 @@ export default {
       if (this.isS3) {
         this.awss3.signingURL = location;
       }
-    }
-  }
+    },
+  },
 };
 </script>
 
